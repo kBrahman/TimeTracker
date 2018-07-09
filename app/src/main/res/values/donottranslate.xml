@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="time_elapsed">0:00:00</string>
+    <string name="play_pause">Play or pause</string>
+    <string name="delete">Delete</string>
+</resources>
