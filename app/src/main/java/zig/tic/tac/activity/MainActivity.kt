@@ -9,7 +9,10 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View.VISIBLE
 import android.widget.EditText
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
 import io.objectbox.Box
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -54,7 +57,12 @@ class MainActivity : AppCompatActivity(), Runnable {
         handler = Handler()
         box = (application as App).getBox()
 
-        Log.i(TAG, "is savedInstanceState null=>${(savedInstanceState == null)}")
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                adView.visibility = VISIBLE
+            }
+        }
+        adView.loadAd(AdRequest.Builder().build())
     }
 
     fun start(txt: String, taskToContinue: Task?) {
@@ -156,7 +164,7 @@ class MainActivity : AppCompatActivity(), Runnable {
         isPaused = true
         handler.removeCallbacks(this)
         currentTask = null
-        timeMenuItem.title=getString(R.string.time_elapsed)
+        timeMenuItem.title = getString(R.string.time_elapsed)
     }
 
     private fun getTimeClosed(): Int = if (currentTask?.getTimeClosed() == 0L) 0 else (System.currentTimeMillis() - currentTask?.getTimeClosed()!!).div(1000).toInt()
