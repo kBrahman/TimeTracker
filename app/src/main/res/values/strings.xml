@@ -1,6 +1,4 @@
 <resources>
-    <string name="app_name">TicTac</string>
-    <string name="action_settings">Settings</string>
-    <string name="task_name">Task name</string>
     <string name="enter_task_name">Enter task name</string>
+    <string name="task_name">Task name</string>
 </resources>
