@@ -2,4 +2,5 @@
 <resources>
     <string name="task_name">"Тірліктің атауы "</string>
     <string name="enter_task_name">Тірліктің атын енгізіңіз</string>
+    <string name="total">Барлығы:</string>
 </resources>

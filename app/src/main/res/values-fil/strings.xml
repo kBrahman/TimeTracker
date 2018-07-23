@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="total">Kabuuang:</string>
+    <string name="enter_task_name">"Ipasok ang pangalan ng gawain "</string>
+    <string name="task_name">"Pangalan ng gawain "</string>
+</resources>

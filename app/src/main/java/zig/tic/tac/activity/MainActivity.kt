@@ -6,9 +6,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.EditText
 import com.google.android.gms.ads.AdListener
@@ -20,6 +20,7 @@ import zig.tic.App
 import zig.tic.tac.R
 import zig.tic.tac.adapter.TaskAdapter
 import zig.tic.tac.entity.Task
+import zig.tic.tac.util.secondsToHoursAndMinutes
 import zig.tic.tac.util.secondsToTime
 
 
@@ -98,9 +99,11 @@ class MainActivity : AppCompatActivity(), Runnable {
     }
 
     override fun run() {
-        Log.i(TAG, "run")
         if (!isPaused) {
             timeMenuItem.title = secondsToTime(++seconds)
+            tvTotal.setText(R.string.total)
+            val sum = seconds + tasks.sumBy { it.getElapsedTime() }
+            tvTotal.append(secondsToHoursAndMinutes(sum))
             handler.postDelayed(this, 1000)
         }
     }
@@ -129,6 +132,8 @@ class MainActivity : AppCompatActivity(), Runnable {
         delMenuItem = menu.findItem(R.id.action_delete)
         val list = box.all
         if (list.isNotEmpty()) {
+            val sum = list.sumBy { it.getElapsedTime() }
+            tvTotal.append(secondsToHoursAndMinutes(sum))
             tasks.addAll(list)
             currentTask = tasks.find { it.isRunning() }
             if (currentTask != null) {
@@ -148,12 +153,14 @@ class MainActivity : AppCompatActivity(), Runnable {
                 playPauseMenuItem.icon = getDrawable()
             }
             rvTasks.adapter = TaskAdapter(tasks)
+
+        } else {
+            tvTotal.visibility = GONE
         }
         return true
     }
 
     fun delete(item: MenuItem) {
-        Log.i(TAG, "delete")
         title = getString(R.string.app_name)
         playPauseMenuItem.isVisible = false
         timeMenuItem.isVisible = false
@@ -179,12 +186,10 @@ class MainActivity : AppCompatActivity(), Runnable {
             box.put(currentTask)
             handler.removeCallbacks(this)
         }
-        Log.i(TAG, "on pause")
     }
 
     override fun onResume() {
         super.onResume()
-        Log.i(TAG, "onResume")
         if (!isPaused && currentTask != null) {
             seconds += getTimeClosed()
             timeMenuItem.title = secondsToTime(seconds)
