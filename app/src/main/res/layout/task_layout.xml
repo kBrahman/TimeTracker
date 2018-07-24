@@ -15,20 +15,19 @@
             android:id="@+id/tvTaskItemName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginStart="5dp"
-            android:textSize="30sp"/>
+            android:textSize="25sp"
+            app:layout_constraintStart_toStartOf="parent"/>
 
         <TextView
             android:id="@+id/tvTaskItemTime"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:textSize="30sp"
-            app:layout_constraintEnd_toStartOf="@id/btnDeleteTask"/>
+            android:gravity="center"
+            android:textSize="25sp"
+            app:layout_constraintEnd_toStartOf="@id/btnDeleteTask"
+            app:layout_constraintStart_toEndOf="@id/tvTaskItemName"/>
 
-        <ImageButton
+        <ImageView
             android:id="@+id/btnDeleteTask"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"

@@ -101,9 +101,14 @@ class MainActivity : AppCompatActivity(), Runnable {
     override fun run() {
         if (!isPaused) {
             timeMenuItem.title = secondsToTime(++seconds)
-            tvTotal.setText(R.string.total)
-            val sum = seconds + tasks.sumBy { it.getElapsedTime() }
-            tvTotal.append(secondsToHoursAndMinutes(sum))
+            if (tasks.isNotEmpty()) {
+                tvTotal.setText(R.string.total)
+                val sum = seconds + tasks.sumBy { it.getElapsedTime() }
+                tvTotal.append(secondsToHoursAndMinutes(sum))
+                tvTotal.visibility = VISIBLE
+            } else {
+                tvTotal.visibility = GONE
+            }
             handler.postDelayed(this, 1000)
         }
     }
@@ -171,7 +176,12 @@ class MainActivity : AppCompatActivity(), Runnable {
         isPaused = true
         handler.removeCallbacks(this)
         currentTask = null
-        timeMenuItem.title = getString(R.string.time_elapsed)
+        if (tasks.size > 1) {
+            tvTotal.setText(R.string.total)
+            tvTotal.append(secondsToHoursAndMinutes(tasks.sumBy { it.getElapsedTime() }))
+        } else {
+            tvTotal.visibility = GONE
+        }
     }
 
     private fun getTimeClosed(): Int = if (currentTask?.getTimeClosed() == 0L) 0 else (System.currentTimeMillis() - currentTask?.getTimeClosed()!!).div(1000).toInt()

@@ -4,7 +4,9 @@ import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
 import android.view.ViewGroup
+import android.widget.TextView
 import kotlinx.android.synthetic.main.task_layout.view.*
 import zig.tic.App
 import zig.tic.tac.R
@@ -37,6 +39,9 @@ class TaskAdapter(private val tasks: MutableList<Task>) : RecyclerView.Adapter<T
                 (it.context.applicationContext as App).getBox().remove(task)
                 tasks.remove(task)
                 notifyItemRemoved(adapterPosition)
+                if (itemCount <= 1) {
+                    (it.context as MainActivity).findViewById<TextView>(R.id.tvTotal).visibility = GONE
+                }
             }
 
             v.setOnClickListener {
