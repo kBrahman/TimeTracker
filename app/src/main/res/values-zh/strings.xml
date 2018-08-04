@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="total">总：</string>
+    <string name="task_name">任务名称</string>
+    <string name="enter_task_name">输入任务名称</string>
+</resources>
