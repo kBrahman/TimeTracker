@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="enter_task_name">Введите название задачи</string>
+    <string name="task_name">Задача</string>
+    <string name="total">Итого:</string>
+</resources>
