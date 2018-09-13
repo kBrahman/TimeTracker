@@ -4,7 +4,7 @@
       tools:context="zig.tic.tac.activity.MainActivity">
     <item
         android:id="@+id/action_time"
-        android:title="@string/menu_time_elapsed"
+        android:title="@string/action_time_elapsed"
         android:visible="false"
         app:showAsAction="always"/>
     <item

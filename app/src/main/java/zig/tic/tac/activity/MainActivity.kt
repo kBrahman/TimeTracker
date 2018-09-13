@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity(), Runnable {
         fab.setOnClickListener {
             AlertDialog.Builder(this)
                     .setView(R.layout.dialog_task_name)
-                    .setPositiveButton(android.R.string.ok) { d, i ->
+                    .setPositiveButton(android.R.string.ok) { d, _ ->
                         val text = (d as AlertDialog).findViewById<EditText>(R.id.edtTaskName)?.text
                         start(text.toString(), null)
                     }
