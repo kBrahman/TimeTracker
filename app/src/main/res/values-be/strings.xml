@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="enter_task_name">"Калі ласка, увядзіце імя задачы "</string>
-    <string name="task_name">"Імя задачы "</string>
-    <string name="total">"Разам: "</string>
+    <string name="enter_task_name">Калі ласка, увядзіце імя задачы</string>
+    <string name="task_name">Імя задачы</string>
+    <string name="total">Разам:</string>
 </resources>

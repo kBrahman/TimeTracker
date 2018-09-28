@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="enter_task_name">"Entrez le nom de la tâche "</string>
+    <string name="task_name">"Nom de la tâche "</string>
+    <string name="total">"Total: "</string>
+</resources>
