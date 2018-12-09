@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity(), Runnable {
             if (rvTasks.adapter == null) {
                 rvTasks.adapter = TaskAdapter(tasks)
             } else {
-                rvTasks.adapter.notifyItemInserted(0)
+                rvTasks.adapter?.notifyItemInserted(0)
             }
         }
         if (taskToContinue == null) {
@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity(), Runnable {
             val i = tasks.indexOf(taskToContinue)
             tasks.removeAt(i)
             box.remove(taskToContinue)
-            rvTasks.adapter.notifyItemRemoved(i)
+            rvTasks.adapter?.notifyItemRemoved(i)
             seconds = taskToContinue.getElapsedTime()
         }
         handler.removeCallbacks(this)
