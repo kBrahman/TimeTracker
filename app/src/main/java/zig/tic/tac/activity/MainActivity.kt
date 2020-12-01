@@ -4,13 +4,15 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
+import android.os.Looper
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import io.objectbox.Box
@@ -55,7 +57,7 @@ class MainActivity : AppCompatActivity(), Runnable {
                     .create().show()
         }
         rvTasks.setHasFixedSize(true)
-        handler = Handler()
+        handler = Handler(Looper.myLooper()!!)
         box = (application as App).getBox()
 
         adView.adListener = object : AdListener() {
@@ -122,11 +124,11 @@ class MainActivity : AppCompatActivity(), Runnable {
         item.icon = getDrawable()
     }
 
-    private fun getDrawable(): Drawable {
+    private fun getDrawable(): Drawable? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getDrawable(if (isPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause)
+            ContextCompat.getDrawable(this, if (isPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause)
         } else {
-            resources.getDrawable(if (isPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause)
+            ContextCompat.getDrawable(this, if (isPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause)
         }
     }
 

@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:5894338228101856875",
-      "lastPropertyId": "8:1834620410796050439",
+      "lastPropertyId": "9:7599337957082192059",
       "name": "Task",
       "properties": [
         {
@@ -29,8 +29,8 @@
           "name": "isRunning"
         },
         {
-          "id": "8:1834620410796050439",
-          "name": "timePaused"
+          "id": "9:7599337957082192059",
+          "name": "timeClosed"
         }
       ],
       "relations": []
@@ -46,7 +46,8 @@
   "retiredIndexUids": [],
   "retiredPropertyUids": [
     3685859183301681641,
-    8891922176734944348
+    8891922176734944348,
+    1834620410796050439
   ],
   "retiredRelationUids": [],
   "version": 1
