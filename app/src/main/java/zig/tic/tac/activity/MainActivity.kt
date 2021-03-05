@@ -9,9 +9,9 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import android.widget.EditText
-import androidx.appcompat.app.AlertDialog
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Column
 import androidx.core.content.ContextCompat
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -44,17 +44,18 @@ class MainActivity : AppCompatActivity(), Runnable {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContent {
+            Column {
+                tasks.forEach {
+
+                }
+            }
+        }
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener {
-            AlertDialog.Builder(this)
-                    .setView(R.layout.dialog_task_name)
-                    .setPositiveButton(android.R.string.ok) { d, _ ->
-                        val text = (d as AlertDialog).findViewById<EditText>(R.id.edtTaskName)?.text
-                        start(text.toString(), null)
-                    }
-                    .create().show()
+            tasks.add(Task(title = getString(R.string.new_task)))
         }
         rvTasks.setHasFixedSize(true)
         handler = Handler(Looper.myLooper()!!)
@@ -126,9 +127,15 @@ class MainActivity : AppCompatActivity(), Runnable {
 
     private fun getDrawable(): Drawable? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ContextCompat.getDrawable(this, if (isPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause)
+            ContextCompat.getDrawable(
+                this,
+                if (isPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause
+            )
         } else {
-            ContextCompat.getDrawable(this, if (isPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause)
+            ContextCompat.getDrawable(
+                this,
+                if (isPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause
+            )
         }
     }
 
@@ -146,7 +153,8 @@ class MainActivity : AppCompatActivity(), Runnable {
             if (currentTask != null) {
                 currentTask?.setIsRunning(false)
                 title = currentTask?.title
-                timeMenuItem.title = secondsToTime(currentTask?.getElapsedTime()!! + getTimeClosed())
+                timeMenuItem.title =
+                    secondsToTime(currentTask?.getElapsedTime()!! + getTimeClosed())
                 timeMenuItem.isVisible = true
                 playPauseMenuItem.isVisible = true
                 delMenuItem.isVisible = true
@@ -186,7 +194,10 @@ class MainActivity : AppCompatActivity(), Runnable {
         }
     }
 
-    private fun getTimeClosed(): Int = if (currentTask?.getTimeClosed() == 0L) 0 else (System.currentTimeMillis() - currentTask?.getTimeClosed()!!).div(1000).toInt()
+    private fun getTimeClosed(): Int =
+        if (currentTask?.getTimeClosed() == 0L) 0 else (System.currentTimeMillis() - currentTask?.getTimeClosed()!!).div(
+            1000
+        ).toInt()
 
 
     override fun onPause() {

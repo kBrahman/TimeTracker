@@ -34,5 +34,5 @@ class Task(val title: String = "", val startTime: Long = 0) {
 
     fun getTimeClosed(): Long = timeClosed
 
-    fun isRunning(): Boolean = isRunning
+    fun isRunning() = isRunning
 }
