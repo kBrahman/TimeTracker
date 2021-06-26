@@ -1,15 +1,14 @@
-package zig.tic
+package time.tracker
 
-import android.app.Application
-import androidx.multidex.MultiDex
+import androidx.multidex.MultiDexApplication
 import com.google.android.gms.ads.MobileAds
 import io.objectbox.Box
-import zig.tic.tac.entity.MyObjectBox
-import zig.tic.tac.entity.Task
-import zig.tic.tac.manager.AppOpenManager
+import time.tracker.entity.MyObjectBox
+import time.tracker.entity.Task
+import time.tracker.manager.AppOpenManager
 
 
-class App : Application() {
+class App : MultiDexApplication() {
 
     private lateinit var appOpenManager: AppOpenManager
     private lateinit var box: Box<Task>
@@ -18,7 +17,6 @@ class App : Application() {
         super.onCreate()
         MobileAds.initialize(this) { }
         appOpenManager = AppOpenManager(this);
-        MultiDex.install(this)
         box = MyObjectBox.builder().androidContext(this).build().boxFor(Task::class.java)
     }
 

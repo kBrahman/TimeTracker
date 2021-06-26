@@ -5,32 +5,43 @@
   "entities": [
     {
       "id": "1:5894338228101856875",
-      "lastPropertyId": "9:7599337957082192059",
+      "lastPropertyId": "12:2558379060352363400",
       "name": "Task",
       "properties": [
         {
           "id": "1:1816002552899003264",
-          "name": "id"
+          "name": "id",
+          "type": 6,
+          "flags": 3
         },
         {
           "id": "2:1417479547021923055",
-          "name": "elapsedTime"
+          "name": "elapsedTime",
+          "type": 5,
+          "flags": 4
         },
         {
           "id": "5:8542007718281717940",
-          "name": "title"
+          "name": "title",
+          "type": 9
         },
         {
           "id": "6:5483996659544152605",
-          "name": "startTime"
+          "name": "startTime",
+          "type": 6,
+          "flags": 4
         },
         {
-          "id": "7:459332177875134595",
-          "name": "isRunning"
+          "id": "10:4617622946432453335",
+          "name": "endTime",
+          "type": 6,
+          "flags": 4
         },
         {
-          "id": "9:7599337957082192059",
-          "name": "timeClosed"
+          "id": "12:2558379060352363400",
+          "name": "y",
+          "type": 5,
+          "flags": 4
         }
       ],
       "relations": []
@@ -40,14 +51,17 @@
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
-  "modelVersion": 4,
-  "modelVersionParserMinimum": 4,
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
   "retiredPropertyUids": [
     3685859183301681641,
     8891922176734944348,
-    1834620410796050439
+    1834620410796050439,
+    7599337957082192059,
+    459332177875134595,
+    3680682292414126345
   ],
   "retiredRelationUids": [],
   "version": 1

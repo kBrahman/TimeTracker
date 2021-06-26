@@ -1,6 +1,5 @@
-package zig.tic.tac
+package time.tracker
 
-import android.util.Log
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -12,7 +11,7 @@ import androidx.test.filters.LargeTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import zig.tic.tac.activity.MainActivity
+import time.tracker.activity.MainActivity
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest

@@ -1,4 +1,4 @@
-package zig.tic.tac.manager
+package time.tracker.manager
 
 import android.app.Activity
 import android.app.Application
@@ -14,17 +14,16 @@ import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.appopen.AppOpenAd.AppOpenAdLoadCallback
-import zig.tic.App
+import time.tracker.App
+import time.tracker.BuildConfig
 import java.util.*
 
-
-/** Prefetches App Open Ads.  */
-class AppOpenManager(val app: App) : Application.ActivityLifecycleCallbacks, LifecycleObserver {
+class AppOpenManager(private val app: App) : Application.ActivityLifecycleCallbacks, LifecycleObserver {
 
     companion object {
         private const val TAG = "AppOpenManager"
-        private const val AD_UNIT_ID = "ca-app-pub-8761730220693010/6652665960"
-//        test:    ca-app-pub-3940256099942544/3419835294
+        private val AD_UNIT_ID = if (BuildConfig.DEBUG) "ca-app-pub-3940256099942544/3419835294"
+        else "ca-app-pub-8761730220693010/6652665960"
     }
 
     private var appOpenAd: AppOpenAd? = null
@@ -59,12 +58,12 @@ class AppOpenManager(val app: App) : Application.ActivityLifecycleCallbacks, Lif
         Log.d(TAG, "onStart")
     }
 
-    fun showAdIfAvailable() {
+    private fun showAdIfAvailable() {
         // Only show ad if there is not already an app open ad currently showing
         // and an ad is available.
         if (!isShowingAd && isAdAvailable) {
             Log.d(TAG, "Will show ad.")
-            val fullScreenContentCallback: FullScreenContentCallback = object : FullScreenContentCallback() {
+            val fullScreenContentCallback = object : FullScreenContentCallback() {
                 override fun onAdDismissedFullScreenContent() {
                     // Set the reference to null so isAdAvailable() returns false.
                     appOpenAd = null
@@ -77,7 +76,8 @@ class AppOpenManager(val app: App) : Application.ActivityLifecycleCallbacks, Lif
                     isShowingAd = true
                 }
             }
-            appOpenAd?.show(currentActivity, fullScreenContentCallback)
+            appOpenAd?.fullScreenContentCallback = fullScreenContentCallback
+            currentActivity?.let { appOpenAd?.show(it) }
         } else {
             Log.d(TAG, "Can not show ad.")
             fetchAd()
@@ -95,7 +95,7 @@ class AppOpenManager(val app: App) : Application.ActivityLifecycleCallbacks, Lif
              *
              * @param ad the loaded app open ad.
              */
-            override fun onAppOpenAdLoaded(ad: AppOpenAd) {
+            override fun onAdLoaded(ad: AppOpenAd) {
                 appOpenAd = ad
                 loadTime = Date().time
             }
@@ -105,14 +105,14 @@ class AppOpenManager(val app: App) : Application.ActivityLifecycleCallbacks, Lif
              *
              * @param loadAdError the error.
              */
-            override fun onAppOpenAdFailedToLoad(loadAdError: LoadAdError) {
-                // Handle the error.
+            override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                Log.i(TAG, "ad failed=>" + loadAdError.message)
             }
         }
 
         AppOpenAd.load(
-                app, AD_UNIT_ID, adRequest,
-                AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, loadCallback)
+            app, AD_UNIT_ID, adRequest,
+            AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, loadCallback!!)
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}

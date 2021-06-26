@@ -1,4 +1,4 @@
-package zig.tic.tac.util
+package time.tracker.util
 
 fun secondsToTime(seconds: Int): String {
     val h = seconds / 3600
