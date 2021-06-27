@@ -74,6 +74,6 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout-compose:1.0.0-alpha07'
     implementation 'androidx.compose.runtime:runtime-livedata:1.0.0-beta08'
     //db
-    debugImplementation "io.objectbox:objectbox-android-objectbrowser:$objectboxVersion"
+//    debugImplementation "io.objectbox:objectbox-android-objectbrowser:$objectboxVersion"
 }
 apply plugin: 'io.objectbox'

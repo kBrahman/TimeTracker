@@ -30,10 +30,8 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension.Companion.fillToConstraints
 import io.objectbox.Box
-import io.objectbox.android.AndroidObjectBrowser
 import kotlinx.coroutines.*
 import time.tracker.App
-import time.tracker.BuildConfig
 import time.tracker.R
 import time.tracker.entity.Task
 import time.tracker.entity.Task_
@@ -110,10 +108,10 @@ class MainActivity : AppCompatActivity() {
 //            }
 //        }
 //        adView.loadAd(AdRequest.Builder().build())
-        if (BuildConfig.DEBUG) {
-            val started = AndroidObjectBrowser(app.store).start(this)
-            Log.i(TAG, "ObjectBrowser started: $started")
-        }
+//        if (BuildConfig.DEBUG) {
+//            val started = AndroidObjectBrowser(app.store).start(this)
+//            Log.i(TAG, "ObjectBrowser started: $started")
+//        }
     }
 
     private fun reorder(tasks: SnapshotStateList<Task>, task: Task) {
