@@ -30,10 +30,13 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension.Companion.fillToConstraints
 import io.objectbox.Box
+import io.objectbox.android.AndroidObjectBrowser
 import kotlinx.coroutines.*
 import time.tracker.App
+import time.tracker.BuildConfig
 import time.tracker.R
 import time.tracker.entity.Task
+import time.tracker.entity.Task_
 import time.tracker.util.secondsToTime
 import kotlin.math.roundToInt
 
@@ -60,7 +63,9 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 ConstraintLayout(Modifier.fillMaxSize()) {
-                    tasks = remember { mutableStateListOf(*box.all.toTypedArray()) }
+                    val allTasks = box.query().order(Task_.order).build().find()
+                    Log.i(TAG, "all tasks from db=>$allTasks")
+                    tasks = remember { mutableStateListOf(*allTasks.toTypedArray()) }
                     Column(Modifier.padding(4.dp)) {
                         tasks.forEachIndexed { i, t ->
                             Spacer(Modifier.height(4.dp))
@@ -72,7 +77,7 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     }
-                    Log.i(TAG, "column recomposed")
+                    Log.i(TAG, "column recomposed task count=>${tasks.size}")
                     FloatingActionButton(
                         backgroundColor = Color.Companion.Black,
                         contentColor = Color.White,
@@ -81,8 +86,10 @@ class MainActivity : AppCompatActivity() {
                             bottom.linkTo(parent.bottom, 32.dp)
                         },
                         onClick = {
+                            Log.i(TAG, "add task on click")
                             if (tasks.isNotEmpty() && tasks[0].startTime == 0L) return@FloatingActionButton
-                            tasks.add(0, Task(getString(R.string.new_task)))
+                            tasks.add(0, Task(getString(R.string.new_task), 0))
+                            tasks.forEachIndexed { index, task -> if (index != 0) task.order = index }
                         }) {
                         Icon(
                             painterResource(id = android.R.drawable.ic_input_add),
@@ -92,9 +99,10 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        setSupportActionBar(findViewById(R.id.toolbar))
+//        setSupportActionBar(findViewById(R.id.toolbar))
         handler = Handler(Looper.myLooper()!!)
-        box = (application as App).getBox()
+        val app = application as App
+        box = app.box
 
 //        adView.adListener = object : AdListener() {
 //            override fun onAdLoaded() {
@@ -102,6 +110,10 @@ class MainActivity : AppCompatActivity() {
 //            }
 //        }
 //        adView.loadAd(AdRequest.Builder().build())
+        if (BuildConfig.DEBUG) {
+            val started = AndroidObjectBrowser(app.store).start(this)
+            Log.i(TAG, "ObjectBrowser started: $started")
+        }
     }
 
     private fun reorder(tasks: SnapshotStateList<Task>, task: Task) {
@@ -110,7 +122,9 @@ class MainActivity : AppCompatActivity() {
         var min = kotlin.math.abs(tasks[0].y - dragEndPosition)
         var index = 0
         for (i in 1 until tasks.size) {
-            if (tasks[i] == task) continue
+            if (tasks[i] == task) {
+                continue
+            }
             val candidate = kotlin.math.abs(tasks[i].y - dragEndPosition)
             if (candidate < min) {
                 min = candidate
@@ -119,10 +133,11 @@ class MainActivity : AppCompatActivity() {
         }
         tasks.remove(task)
         tasks.add(index, task)
+        tasks.forEachIndexed { i, t -> t.order = i }
     }
 
     override fun onStop() {
-        Log.i(TAG, "on stop")
+        Log.i(TAG, "on stop tasks=>${tasks.map { it }}")
         box.put(tasks)
         super.onStop()
     }
@@ -131,23 +146,37 @@ class MainActivity : AppCompatActivity() {
     @ExperimentalMaterialApi
     @Composable
     private fun TaskItem(task: Task, index: Int, calculatePosition: (t: Task) -> Unit) {
-        Log.i(TAG, "TaskItem created task=>$task; index=>$index")
         task.elapsedTimeState = mutableStateOf(secondsToTime(task.elapsedTime))
         task.titleState = mutableStateOf(task.title)
-        val isRunning = task.isRunning
-        task.isRunningState.value = isRunning
+        if (task.isRunning && (task.isRunningState == null || !task.isRunningState!!.value)) {
+            start(task)
+            if (task.isRunningState == null) {
+                task.isRunningState = mutableStateOf(true)
+            }
+            task.isRunningState!!.value = true
+            Log.i(TAG, "started task running from DB task=>$task")
+        }
         val elevation = remember { mutableStateOf(0.dp) }
         val offset = remember { mutableStateOf(0F) }
-        val dismissState = rememberDismissState()
+        val dismissState = rememberDismissState {
+//            if (task.id != 0L) box.remove(task)
+//            tasks.remove(task)
+//            Log.i(TAG, "rememberDismissState")
+            true
+        }
         val isDismissed = dismissState.isDismissed(DismissDirection.EndToStart) ||
                 dismissState.isDismissed(DismissDirection.StartToEnd)
         LaunchedEffect(isDismissed) {
-            Log.i(TAG, "Effect")
+            Log.i(TAG, "LaunchedEffect is dismissed=>$isDismissed")
             if (isDismissed) {
-                box.remove(task)
-                Log.i(TAG, "removed task=$task")
+                if (task.id != 0L) box.remove(task)
+                delay(300)
+//                tasks.remove(task)
+                tasks = mutableStateListOf(*tasks.filter { it != task }.toTypedArray())
+                Log.i(TAG, "removed task=>$task")
             }
         }
+        Log.i(TAG, "TaskItem recomposed=>$task; index=>$index, is dismissed=>$isDismissed")
         val itemModifier = Modifier
             .pointerInput(task) {
                 detectDragGesturesAfterLongPress(onDragStart = { _ ->
@@ -215,7 +244,7 @@ class MainActivity : AppCompatActivity() {
                         }
                         Image(
                             painterResource(
-                                id = if (task.isRunningState.value) R.drawable.ic_pause_circle_outline_24
+                                id = if (task.isRunningState?.value == true) R.drawable.ic_pause_circle_outline_24
                                 else R.drawable.ic_play_circle_outline_24
                             ),
                             contentDescription = getString(R.string.start_task),
@@ -230,9 +259,9 @@ class MainActivity : AppCompatActivity() {
                                     indication = null
                                 ) {
                                     if (task.titleState.value.isEmpty()) task.titleState.value = task.title
-                                    val value = task.isRunningState.value
-                                    task.isRunningState.value = !value
-                                    if (task.isRunningState.value) {
+                                    val value = task.isRunning
+                                    task.isRunning = !value
+                                    if (task.isRunning) {
                                         task.startTime = System.currentTimeMillis()
                                         start(task)
                                     }
