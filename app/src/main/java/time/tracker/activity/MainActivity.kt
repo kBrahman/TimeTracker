@@ -148,10 +148,8 @@ class MainActivity : AppCompatActivity() {
         task.titleState = mutableStateOf(task.title)
         if (task.isRunning && (task.isRunningState == null || !task.isRunningState!!.value)) {
             start(task)
-            if (task.isRunningState == null) {
-                task.isRunningState = mutableStateOf(true)
-            }
-            task.isRunningState!!.value = true
+            if (task.isRunningState == null) task.isRunningState = mutableStateOf(true)
+
             Log.i(TAG, "started task running from DB task=>$task")
         }
         val elevation = remember { mutableStateOf(0.dp) }
@@ -259,10 +257,12 @@ class MainActivity : AppCompatActivity() {
                                     if (task.titleState.value.isEmpty()) task.titleState.value = task.title
                                     val value = task.isRunning
                                     task.isRunning = !value
+                                    task.isRunningState?.value = !value
                                     if (task.isRunning) {
                                         task.startTime = System.currentTimeMillis()
                                         start(task)
                                     }
+                                    Log.i(TAG, "start task click, task=>$task")
                                 })
                     }
                 }
