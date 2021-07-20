@@ -3,8 +3,6 @@
     <string name="enter_task_name">Zadejte název úkolu</string>
     <string name="task_name">Název úkolu</string>
     <string name="total">Celkový:</string>
-    <string name="play_pause">Přehrát nebo pozastavit</string>
-    <string name="delete">Vymazat</string>
     <string name="new_task">Nová úloha</string>
     <string name="start_task">Spusťte úkol</string>
     <string name="current_name">Název úkolu</string>

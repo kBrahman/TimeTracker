@@ -2,8 +2,6 @@
     <string name="enter_task_name">Enter task name</string>
     <string name="task_name">Task name</string>
     <string name="total">Total: </string>
-    <string name="play_pause">Play or pause</string>
-    <string name="delete">Delete</string>
     <string name="new_task">New task</string>
     <string name="start_task">Start task</string>
     <string name="current_name">Task name</string>

@@ -3,4 +3,7 @@
     <string name="task_name">Тірліктің атауы</string>
     <string name="enter_task_name">Тірліктің атын енгізіңіз</string>
     <string name="total">Барлығы:</string>
+    <string name="new_task">Жаңа тапсырма</string>
+    <string name="start_task">Тапсырманы бастау</string>
+    <string name="current_name">Тапсырманың атауы</string>
 </resources>

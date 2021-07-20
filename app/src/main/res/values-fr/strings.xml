@@ -3,4 +3,7 @@
     <string name="enter_task_name">"Entrez le nom de la tâche "</string>
     <string name="task_name">"Nom de la tâche "</string>
     <string name="total">"Total: "</string>
+    <string name="new_task">Nouvelle tâche</string>
+    <string name="start_task">Démarrer la tâche</string>
+    <string name="current_name">Nom de la tâche</string>
 </resources>
