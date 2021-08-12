@@ -19,7 +19,7 @@ android {
 
     compileSdkVersion 30
     defaultConfig {
-        applicationId "zig.tic.tac"
+        applicationId localProperties["id"]
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 17
