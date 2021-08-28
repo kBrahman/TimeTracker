@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="enter_task_name">Введіть назву завдання</string>
+    <string name="task_name">Назва завдання</string>
+    <string name="total">Всього:</string>
+    <string name="new_task">Нове завдання</string>
+    <string name="start_task">Почати завдання</string>
+    <string name="current_name">Поточна назва</string>
+</resources>
