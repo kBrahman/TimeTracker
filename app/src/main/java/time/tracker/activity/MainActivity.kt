@@ -5,11 +5,15 @@ import android.os.*
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -63,10 +67,10 @@ class MainActivity : AppCompatActivity() {
                     Log.i(TAG, "all tasks from db=>$allTasks")
                     tasks = remember { mutableStateListOf(*allTasks.toTypedArray()) }
                     Log.i(TAG, "tasks=>${tasks.map { it }}")
-                    Column(Modifier.padding(4.dp)) {
-                        tasks.forEachIndexed { i, t ->
+                    LazyColumn {
+                        items(count = tasks.size, key = { tasks[it].order }) { i ->
                             Spacer(Modifier.height(4.dp))
-                            TaskItem(t, i, tasks) {
+                            TaskItem(tasks[i], i, tasks) {
                                 if (!((i == 0 && it.y + it.offset < it.y) ||
                                             (i == tasks.size - 1 && it.y + it.offset > it.y) ||
                                             (kotlin.math.abs(it.offset) < 84))
@@ -74,6 +78,17 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     }
+//                    Column(Modifier.padding(4.dp)) {
+//                        tasks.forEachIndexed { i, t ->
+//                            Spacer(Modifier.height(4.dp))
+//                            TaskItem(t, i, tasks) {
+//                                if (!((i == 0 && it.y + it.offset < it.y) ||
+//                                            (i == tasks.size - 1 && it.y + it.offset > it.y) ||
+//                                            (kotlin.math.abs(it.offset) < 84))
+//                                ) reorder(tasks, it)
+//                            }
+//                        }
+//                    }
                     Log.i(TAG, "constraint layout recomposed task count=>${tasks.size}")
                     FloatingActionButton(
                         backgroundColor = Color.Companion.Black,
@@ -154,24 +169,25 @@ class MainActivity : AppCompatActivity() {
         }
         val elevation = remember { mutableStateOf(0.dp) }
         val offset = remember { mutableStateOf(0F) }
+        var isDeleted by remember { mutableStateOf(false) }
+
         val dismissState = rememberDismissState {
-//            if (task.id != 0L) box.remove(task)
-//            tasks.remove(task)
-//            Log.i(TAG, "rememberDismissState")
-            true
+            if (it == DismissValue.DismissedToEnd) isDeleted = !isDeleted
+            else if (it == DismissValue.DismissedToStart) isDeleted = !isDeleted
+            it != DismissValue.DismissedToStart || it != DismissValue.DismissedToEnd
         }
         val isDismissed = dismissState.isDismissed(DismissDirection.EndToStart) ||
                 dismissState.isDismissed(DismissDirection.StartToEnd)
-        LaunchedEffect(isDismissed) {
-            Log.i(TAG, "LaunchedEffect is dismissed=>$isDismissed")
-            if (isDismissed) {
-                if (task.id != 0L) box.remove(task)
-                delay(300)
-                tasks.remove(task)
-                dismissState.snapTo(DismissValue.Default)
-                Log.i(TAG, "removed task=>$task, count=>${tasks.size}")
-            }
-        }
+//        LaunchedEffect(isDismissed) {
+//            Log.i(TAG, "LaunchedEffect is dismissed=>$isDismissed")
+//            if (isDismissed) {
+//                if (task.id != 0L) box.remove(task)
+////                delay(300)
+//                tasks.remove(task)
+//                dismissState.snapTo(DismissValue.Default)
+//                Log.i(TAG, "removed task=>$task, count=>${tasks.size}")
+//            }
+//        }
         Log.i(TAG, "TaskItem recomposed=>$task; index=>$index, is dismissed=>$isDismissed")
         val itemModifier = Modifier
             .pointerInput(task) {
@@ -190,93 +206,103 @@ class MainActivity : AppCompatActivity() {
                     Log.i(TAG, "on drag: task=>$task; index=>$index")
                 }
             }
-//        AnimatedVisibility(
-//            visible = !isDismissed, exit = shrinkVertically(
-//                animationSpec = tween(
-//                    durationMillis = 300,
-//                )
-//            )
-//        ) {
-        SwipeToDismiss(state = dismissState, background = { /*TODO*/ }) {
-            Card(Modifier
-                .fillMaxWidth()
-                .offset { IntOffset(0, offset.value.roundToInt()) }
-                .onGloballyPositioned {
-                    task.y = 4 + index * (4 + it.size.height)
-                    task.offset = offset.value.roundToInt()
-                }, border = BorderStroke(4.dp, Color.Black), shape = RoundedCornerShape(25),
-                elevation = elevation.value
-            ) {
-                ConstraintLayout(Modifier.padding(start = 8.dp)) {
-                    val (time, playBtn) = createRefs()
-                    TextField(textStyle = TextStyle(fontSize = 20.sp),
-                        modifier = Modifier
-                            .constrainAs(createRef()) {
-                                top.linkTo(parent.top)
-                                bottom.linkTo(parent.bottom)
-                                start.linkTo(parent.start)
-                                end.linkTo(time.start)
-                                width = fillToConstraints
-                            },
-                        label = {
-                            Text(
-                                getString(
-                                    if (task.startTime > 0) R.string.current_name
-                                    else R.string.new_task
+        AnimatedVisibility(
+            visible = !isDeleted, exit = shrinkVertically(
+                animationSpec = tween(
+                    durationMillis = 300,
+                )
+            )
+        ) {
+            SwipeToDismiss(
+                state = dismissState, background = {}) {
+                if (isDeleted) remove(task, tasks)
+                Card(Modifier
+                    .fillMaxWidth()
+                    .offset { IntOffset(0, offset.value.roundToInt()) }
+                    .onGloballyPositioned {
+                        task.y = 4 + index * (4 + it.size.height)
+                        task.offset = offset.value.roundToInt()
+                    }, border = BorderStroke(4.dp, Color.Black), shape = RoundedCornerShape(25),
+                    elevation = elevation.value
+                ) {
+                    ConstraintLayout(Modifier.padding(start = 8.dp)) {
+                        val (time, playBtn) = createRefs()
+                        TextField(textStyle = TextStyle(fontSize = 20.sp),
+                            modifier = Modifier
+                                .constrainAs(createRef()) {
+                                    top.linkTo(parent.top)
+                                    bottom.linkTo(parent.bottom)
+                                    start.linkTo(parent.start)
+                                    end.linkTo(time.start)
+                                    width = fillToConstraints
+                                },
+                            label = {
+                                Text(
+                                    getString(
+                                        if (task.startTime > 0) R.string.current_name
+                                        else R.string.new_task
+                                    )
                                 )
-                            )
-                        },
-                        colors = TextFieldDefaults.textFieldColors(
-                            backgroundColor = Color.White,
-                        ),
-                        value = task.titleState.value,
-                        onValueChange = { v ->
-                            task.titleState.value = v
-                            task.title = v
-                        })
-                    if (task.startTime > 0) {
-                        Column(itemModifier.constrainAs(time) {
-                            end.linkTo(playBtn.start, 16.dp)
-                            width = fillToConstraints
-                        }) {
-                            Text(
-                                task.elapsedTimeState.value,
-                                fontSize = 31.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                    Image(
-                        painterResource(
-                            id = if (task.isRunningState?.value == true) R.drawable.ic_pause_circle_outline_24
-                            else R.drawable.ic_play_circle_outline_24
-                        ),
-                        contentDescription = getString(R.string.start_task),
-                        modifier = itemModifier
-                            .constrainAs(playBtn) {
-                                end.linkTo(parent.end, 4.dp)
-                                top.linkTo(parent.top)
-                                bottom.linkTo(parent.bottom)
-                            }
-                            .clickable(
-                                interactionSource = MutableInteractionSource(),
-                                indication = null
-                            ) {
-                                if (task.titleState.value.isEmpty()) task.titleState.value = task.title
-                                val value = task.isRunning
-                                task.isRunning = !value
-                                task.isRunningState?.value = !value
-                                if (task.isRunning) {
-                                    task.startTime = System.currentTimeMillis()
-                                    start(task)
-                                }
-                                Log.i(TAG, "start task click, task=>$task")
+                            },
+                            colors = TextFieldDefaults.textFieldColors(
+                                backgroundColor = Color.White,
+                            ),
+                            value = task.titleState.value,
+                            onValueChange = { v ->
+                                task.titleState.value = v
+                                task.title = v
                             })
+                        if (task.startTime > 0) {
+                            Column(itemModifier.constrainAs(time) {
+                                end.linkTo(playBtn.start, 16.dp)
+                                width = fillToConstraints
+                            }) {
+                                Text(
+                                    task.elapsedTimeState.value,
+                                    fontSize = 31.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        Image(
+                            painterResource(
+                                id = if (task.isRunningState?.value == true) R.drawable.ic_pause_circle_outline_24
+                                else R.drawable.ic_play_circle_outline_24
+                            ),
+                            contentDescription = getString(R.string.start_task),
+                            modifier = itemModifier
+                                .constrainAs(playBtn) {
+                                    end.linkTo(parent.end, 4.dp)
+                                    top.linkTo(parent.top)
+                                    bottom.linkTo(parent.bottom)
+                                }
+                                .clickable(
+                                    interactionSource = MutableInteractionSource(),
+                                    indication = null
+                                ) {
+                                    if (task.titleState.value.isEmpty()) task.titleState.value = task.title
+                                    val value = task.isRunning
+                                    task.isRunning = !value
+                                    task.isRunningState?.value = !value
+                                    if (task.isRunning) {
+                                        task.startTime = System.currentTimeMillis()
+                                        start(task)
+                                    }
+                                    Log.i(TAG, "start task click, task=>$task")
+                                })
+                    }
                 }
             }
         }
-//        }
     }
+
+    private fun remove(task: Task, tasks: SnapshotStateList<Task>) = cScope.launch {
+        Log.i(TAG, "removing task=>$task")
+        if (task.id != 0L) box.remove(task)
+        delay(300)
+        tasks.remove(task)
+    }
+
 
     private fun vibrate() {
         val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?

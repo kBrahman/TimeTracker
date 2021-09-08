@@ -22,8 +22,8 @@ android {
         applicationId localProperties["id"]
         minSdkVersion 21
         targetSdkVersion 31
-        versionCode 19
-        versionName "3.5"
+        versionCode 20
+        versionName "3.6"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -47,7 +47,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     composeOptions {
-        kotlinCompilerExtensionVersion "1.0.1"
+        kotlinCompilerExtensionVersion "1.0.2"
     }
     kotlinOptions {
         jvmTarget = '11'
@@ -72,10 +72,10 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
     //compose
     implementation 'androidx.activity:activity-compose:1.3.1'
-    implementation 'androidx.compose.foundation:foundation:1.1.0-alpha02'
-    implementation 'androidx.compose.material:material:1.1.0-alpha02'
+    implementation 'androidx.compose.foundation:foundation:1.1.0-alpha03'
+    implementation 'androidx.compose.material:material:1.1.0-alpha03'
     implementation 'androidx.constraintlayout:constraintlayout-compose:1.0.0-beta02'
-    implementation 'androidx.compose.runtime:runtime-livedata:1.1.0-alpha02'
+    implementation 'androidx.compose.runtime:runtime-livedata:1.1.0-alpha03'
     //db
 //    debugImplementation "io.objectbox:objectbox-android-objectbrowser:$objectboxVersion"
 }

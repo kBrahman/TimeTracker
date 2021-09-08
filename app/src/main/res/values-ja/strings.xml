@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="enter_task_name">タスク名を入力してください</string>
+    <string name="task_name">タスク名</string>
+    <string name="total">合計：</string>
+    <string name="new_task">新しい仕事</string>
+    <string name="start_task">タスクを開始</string>
+    <string name="current_name">現在の名前</string>
+</resources>
