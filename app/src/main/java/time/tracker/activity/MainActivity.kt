@@ -9,148 +9,196 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListItemInfo
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension.Companion.fillToConstraints
+import com.facebook.ads.Ad
+import com.facebook.ads.AdError
+import com.facebook.ads.InterstitialAd
+import com.facebook.ads.InterstitialAdListener
 import io.objectbox.Box
 import kotlinx.coroutines.*
 import time.tracker.App
 import time.tracker.R
 import time.tracker.entity.Task
 import time.tracker.entity.Task_
+import time.tracker.util.move
+import time.tracker.util.offsetEnd
 import time.tracker.util.secondsToTime
-import kotlin.math.roundToInt
 
 
+@ExperimentalMaterialApi
+@ExperimentalAnimationApi
 class MainActivity : AppCompatActivity() {
 
     companion object {
         private val TAG: String = MainActivity::class.java.simpleName
     }
 
-    private lateinit var handler: Handler
+    private lateinit var loading: MutableState<Boolean>
     private lateinit var box: Box<Task>
     private lateinit var tasks: SnapshotStateList<Task>
     private val cScope = CoroutineScope(Dispatchers.Default)
+    private var timeOut = false
 
-    @ExperimentalAnimationApi
-    @ExperimentalMaterialApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            Column {
-                TopAppBar(backgroundColor = Color.Black, contentColor = Color.White) {
-                    Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
-                        Text("TimeTracker", fontSize = 24.sp)
+
+        val interstitialAd = InterstitialAd(this, "2766903800218516_2766908440218052")
+//        AdSettings.addTestDevice("5dec1284-51f6-43c1-9b84-5ceef35455e6")
+        interstitialAd.loadAd(
+            interstitialAd.buildLoadAdConfig()
+                .withAdListener(object : InterstitialAdListener {
+                    override fun onError(p0: Ad?, err: AdError?) {
+                        Log.e(TAG, "Interstitial ad failed to load: " + err?.errorMessage)
+                        loading.value = false
                     }
-                }
-                ConstraintLayout(Modifier.fillMaxSize()) {
-                    val allTasks = box.query().order(Task_.order).build().find()
-                    Log.i(TAG, "all tasks from db=>$allTasks")
-                    tasks = remember { mutableStateListOf(*allTasks.toTypedArray()) }
-                    Log.i(TAG, "tasks=>${tasks.map { it }}")
-                    LazyColumn {
-                        items(count = tasks.size, key = { tasks[it].order }) { i ->
-                            Spacer(Modifier.height(4.dp))
-                            TaskItem(tasks[i], i, tasks) {
-                                if (!((i == 0 && it.y + it.offset < it.y) ||
-                                            (i == tasks.size - 1 && it.y + it.offset > it.y) ||
-                                            (kotlin.math.abs(it.offset) < 84))
-                                ) reorder(tasks, it)
+
+                    override fun onAdLoaded(ad: Ad?) {
+                        if (!timeOut) interstitialAd.show()
+                        else interstitialAd.destroy()
+                    }
+
+                    override fun onAdClicked(p0: Ad?) {}
+                    override fun onLoggingImpression(p0: Ad?) {}
+                    override fun onInterstitialDisplayed(p0: Ad?) {}
+                    override fun onInterstitialDismissed(p0: Ad?) {
+                        loading.value = false
+                        interstitialAd.destroy()
+                    }
+                }).build()
+        )
+
+        setContent {
+            MaterialTheme(lightColors(Color.Black)) {
+                Column {
+                    TopAppBar(backgroundColor = Color.Black, contentColor = Color.White) {
+                        Text("TimeTracker", fontSize = 20.sp)
+                    }
+                    ConstraintLayout(Modifier.fillMaxSize()) {
+                        val allTasks = box.query().order(Task_.order).build().find()
+                        tasks = remember { mutableStateListOf(*allTasks.toTypedArray()) }
+                        val listState = rememberLazyListState()
+                        var draggedItem by remember { mutableStateOf<LazyListItemInfo?>(null) }
+                        val draggedDistance = remember { mutableStateOf(0F) }
+                        loading = remember { mutableStateOf(true) }
+                        LazyColumn(
+                            Modifier
+                                .fillMaxHeight()
+                                .pointerInput(Unit) {
+                                    detectDragGesturesAfterLongPress({ offset ->
+                                        vibrate()
+                                        draggedItem = listState.layoutInfo.visibleItemsInfo.find { item ->
+                                            offset.y.toInt() in item.offset..item.offsetEnd
+                                        }
+                                        Log.i(TAG, "on drag start, index=>${draggedItem?.index}")
+                                    }, {
+                                        draggedDistance.value = 0F
+                                        draggedItem = null
+                                    }, {
+                                        draggedDistance.value = 0F
+                                        draggedItem = null
+                                    }) { ch, off ->
+                                        ch.consumeAllChanges()
+                                        draggedDistance.value = draggedDistance.value.plus(off.y)
+                                        draggedItem?.let { di ->
+                                            val startOff = di.offset + draggedDistance.value
+                                            val endOff = di.offsetEnd + draggedDistance.value
+                                            val found = listState.layoutInfo.visibleItemsInfo.find { info ->
+                                                val threshold = (info.offset + info.offsetEnd) / 2
+                                                info != di &&
+                                                        ((draggedDistance.value > 0 && endOff.toInt() in threshold + di.size / 4..info.offsetEnd) ||
+                                                                (startOff.toInt() in info.offset..threshold - di.size / 4 &&
+                                                                        draggedDistance.value < 0))
+                                            }
+                                            if (found != null) {
+                                                val to = di.index
+                                                val from = found.index
+                                                tasks.move(from, to)
+                                                Log.i(TAG, "moved from:$from, to:$to")
+                                                draggedItem = found
+                                                draggedDistance.value = endOff - found.offsetEnd
+                                            }
+                                        }
+                                    }
+                                },
+                            listState,
+                            PaddingValues(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                            verticalArrangement = spacedBy(4.dp)
+                        ) {
+                            items(count = tasks.size, key = { tasks[it].hashCode() }) { i ->
+                                TaskItem(tasks[i], i, tasks, draggedDistance, draggedItem)
                             }
                         }
-                    }
-//                    Column(Modifier.padding(4.dp)) {
-//                        tasks.forEachIndexed { i, t ->
-//                            Spacer(Modifier.height(4.dp))
-//                            TaskItem(t, i, tasks) {
-//                                if (!((i == 0 && it.y + it.offset < it.y) ||
-//                                            (i == tasks.size - 1 && it.y + it.offset > it.y) ||
-//                                            (kotlin.math.abs(it.offset) < 84))
-//                                ) reorder(tasks, it)
-//                            }
-//                        }
-//                    }
-                    Log.i(TAG, "constraint layout recomposed task count=>${tasks.size}")
-                    FloatingActionButton(
-                        backgroundColor = Color.Companion.Black,
-                        contentColor = Color.White,
-                        modifier = Modifier.constrainAs(createRef()) {
-                            end.linkTo(parent.end, 8.dp)
-                            bottom.linkTo(parent.bottom, 32.dp)
-                        },
-                        onClick = {
-                            if (tasks.isNotEmpty() && tasks[0].startTime == 0L) return@FloatingActionButton
-                            tasks.add(0, Task(getString(R.string.new_task), 0))
-                            Log.i(TAG, "add task on click, size=>${tasks.size}")
-                            Log.i(TAG, "list class=>${tasks.javaClass.name}")
-                            tasks.forEachIndexed { index, task -> if (index != 0) task.order = index }
-                        }) {
-                        Icon(
-                            painterResource(id = android.R.drawable.ic_input_add),
-                            contentDescription = getString(R.string.new_task)
-                        )
+                        FloatingActionButton(
+                            backgroundColor = Color.Companion.Black,
+                            contentColor = Color.White,
+                            modifier = Modifier.constrainAs(createRef()) {
+                                end.linkTo(parent.end, 8.dp)
+                                bottom.linkTo(parent.bottom, 32.dp)
+                            },
+                            onClick = {
+                                if (tasks.isNotEmpty() && tasks[0].startTime == 0L) return@FloatingActionButton
+                                reorder()
+                                tasks.add(0, Task(getString(R.string.new_task), 0))
+                            }) {
+                            Icon(
+                                painterResource(id = android.R.drawable.ic_input_add),
+                                contentDescription = getString(R.string.new_task)
+                            )
+                        }
+                        if (loading.value) Box(
+                            Modifier
+                                .fillMaxSize()
+                                .background(Color.White)
+                        ) { CircularProgressIndicator(modifier = Modifier.align(Alignment.Center)) }
                     }
                 }
             }
         }
-//        setSupportActionBar(findViewById(R.id.toolbar))
-        handler = Handler(Looper.myLooper()!!)
         val app = application as App
         box = app.box
-
-//        adView.adListener = object : AdListener() {
-//            override fun onAdLoaded() {
-//                adView.visibility = VISIBLE
-//            }
-//        }
-//        adView.loadAd(AdRequest.Builder().build())
-//        if (BuildConfig.DEBUG) {
-//            val started = AndroidObjectBrowser(app.store).start(this)
-//            Log.i(TAG, "ObjectBrowser started: $started")
-//        }
+        setTimer()
     }
 
-    private fun reorder(tasks: SnapshotStateList<Task>, task: Task) {
-        Log.i(TAG, "reordering task=>$task")
-        val dragEndPosition = task.y + task.offset
-        var min = kotlin.math.abs(tasks[0].y - dragEndPosition)
-        var index = 0
-        for (i in 1 until tasks.size) {
-            if (tasks[i] == task) {
-                continue
-            }
-            val candidate = kotlin.math.abs(tasks[i].y - dragEndPosition)
-            if (candidate < min) {
-                min = candidate
-                index = i
-            }
-        }
-        tasks.remove(task)
-        tasks.add(index, task)
-        tasks.forEachIndexed { i, t -> t.order = i }
+    private fun setTimer() = cScope.launch {
+        delay(7000)
+        loading.value = false
+        timeOut = true
     }
+
+    private fun reorder() = tasks.forEachIndexed { index, task -> task.order = index + 1 }
+
 
     override fun onStop() {
         Log.i(TAG, "on stop tasks=>${tasks.map { it }}")
+        reorder()
         box.put(tasks)
         super.onStop()
     }
@@ -158,72 +206,40 @@ class MainActivity : AppCompatActivity() {
     @ExperimentalAnimationApi
     @ExperimentalMaterialApi
     @Composable
-    private fun TaskItem(task: Task, index: Int, tasks: SnapshotStateList<Task>, calculatePosition: (Task) -> Unit) {
+    private fun TaskItem(
+        task: Task,
+        i: Int,
+        tasks: SnapshotStateList<Task>,
+        dragDistance: MutableState<Float>,
+        draggedItem: LazyListItemInfo?
+    ) {
         task.elapsedTimeState = mutableStateOf(secondsToTime(task.elapsedTime))
         task.titleState = mutableStateOf(task.title)
         if (task.isRunning && (task.isRunningState == null || !task.isRunningState!!.value)) {
             start(task)
             if (task.isRunningState == null) task.isRunningState = mutableStateOf(true)
-
-            Log.i(TAG, "started task running from DB task=>$task")
         }
-        val elevation = remember { mutableStateOf(0.dp) }
-        val offset = remember { mutableStateOf(0F) }
         var isDeleted by remember { mutableStateOf(false) }
 
         val dismissState = rememberDismissState {
-            if (it == DismissValue.DismissedToEnd) isDeleted = !isDeleted
-            else if (it == DismissValue.DismissedToStart) isDeleted = !isDeleted
-            it != DismissValue.DismissedToStart || it != DismissValue.DismissedToEnd
+            if (it == DismissValue.DismissedToStart || it == DismissValue.DismissedToEnd) isDeleted = true
+            isDeleted
         }
-        val isDismissed = dismissState.isDismissed(DismissDirection.EndToStart) ||
-                dismissState.isDismissed(DismissDirection.StartToEnd)
-//        LaunchedEffect(isDismissed) {
-//            Log.i(TAG, "LaunchedEffect is dismissed=>$isDismissed")
-//            if (isDismissed) {
-//                if (task.id != 0L) box.remove(task)
-////                delay(300)
-//                tasks.remove(task)
-//                dismissState.snapTo(DismissValue.Default)
-//                Log.i(TAG, "removed task=>$task, count=>${tasks.size}")
-//            }
-//        }
-        Log.i(TAG, "TaskItem recomposed=>$task; index=>$index, is dismissed=>$isDismissed")
-        val itemModifier = Modifier
-            .pointerInput(task) {
-                detectDragGesturesAfterLongPress(onDragStart = { _ ->
-                    elevation.value = 64.dp
-                    vibrate()
-                    Log.i(TAG, "on drag start=>$task; index=>$index")
-                }, onDragEnd = {
-                    calculatePosition(task)
-                    elevation.value = 0.dp
-                    offset.value = 0F
-                    Log.i(TAG, "on drag end=>$task; index=>$index")
-                }) { _, dragAmount ->
-                    offset.value += dragAmount.y
-                    task.offset = offset.value.roundToInt()
-                    Log.i(TAG, "on drag: task=>$task; index=>$index")
-                }
-            }
+        val same = draggedItem?.index == i
         AnimatedVisibility(
-            visible = !isDeleted, exit = shrinkVertically(
-                animationSpec = tween(
-                    durationMillis = 300,
-                )
-            )
+            !isDeleted,
+            Modifier.zIndex(if (same) 1F else 0F),
+            exit = shrinkVertically(animationSpec = tween(durationMillis = 300))
         ) {
-            SwipeToDismiss(
-                state = dismissState, background = {}) {
+            SwipeToDismiss(state = dismissState, background = {}) {
                 if (isDeleted) remove(task, tasks)
-                Card(Modifier
-                    .fillMaxWidth()
-                    .offset { IntOffset(0, offset.value.roundToInt()) }
-                    .onGloballyPositioned {
-                        task.y = 4 + index * (4 + it.size.height)
-                        task.offset = offset.value.roundToInt()
-                    }, border = BorderStroke(4.dp, Color.Black), shape = RoundedCornerShape(25),
-                    elevation = elevation.value
+                Card(
+                    Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer { translationY = if (same) dragDistance.value else 0F },
+                    border = BorderStroke(4.dp, Color.Black),
+                    shape = RoundedCornerShape(25),
+                    elevation = if (same) 16.dp else 1.dp
                 ) {
                     ConstraintLayout(Modifier.padding(start = 8.dp)) {
                         val (time, playBtn) = createRefs()
@@ -253,7 +269,7 @@ class MainActivity : AppCompatActivity() {
                                 task.title = v
                             })
                         if (task.startTime > 0) {
-                            Column(itemModifier.constrainAs(time) {
+                            Column(Modifier.constrainAs(time) {
                                 end.linkTo(playBtn.start, 16.dp)
                                 width = fillToConstraints
                             }) {
@@ -270,7 +286,7 @@ class MainActivity : AppCompatActivity() {
                                 else R.drawable.ic_play_circle_outline_24
                             ),
                             contentDescription = getString(R.string.start_task),
-                            modifier = itemModifier
+                            modifier = Modifier
                                 .constrainAs(playBtn) {
                                     end.linkTo(parent.end, 4.dp)
                                     top.linkTo(parent.top)
@@ -304,13 +320,13 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun vibrate() {
+    private fun vibrate() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+        (getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
+            .vibrate(CombinedVibration.createParallel(VibrationEffect.createOneShot(71, 251)))
+    else {
         val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            v?.vibrate(VibrationEffect.createOneShot(71, 251))
-        } else {
-            v?.vibrate(50)
-        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) v?.vibrate(VibrationEffect.createOneShot(71, 251))
+        else v?.vibrate(50)
     }
 
     private fun start(task: Task): Job = cScope.launch {

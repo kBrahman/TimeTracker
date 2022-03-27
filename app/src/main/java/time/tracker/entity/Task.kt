@@ -13,7 +13,6 @@ data class Task(var title: String = "New task", var order: Int) {
         private const val TAG = "Task"
     }
 
-    var y = 0
     var offset = 0
 
     @Id
