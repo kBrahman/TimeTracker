@@ -3,4 +3,7 @@
     <string name="enter_task_name">Introduceți numele lucrării</string>
     <string name="task_name">"Numele sarcinii "</string>
     <string name="total">"Total: "</string>
+    <string name="current_name">Nume curent</string>
+    <string name="new_task">Sarcina noua</string>
+    <string name="start_task">Începeți sarcina</string>
 </resources>

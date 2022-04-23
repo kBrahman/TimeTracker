@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -61,6 +60,7 @@ class MainActivity : AppCompatActivity() {
         private val TAG: String = MainActivity::class.java.simpleName
     }
 
+    private var paused = false
     private lateinit var loading: MutableState<Boolean>
     private lateinit var box: Box<Task>
     private lateinit var tasks: SnapshotStateList<Task>
@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity() {
                                         draggedDistance.value = 0F
                                         draggedItem = null
                                     }) { ch, off ->
-                                        ch.consumeAllChanges()
+                                        ch.consume()
                                         draggedDistance.value = draggedDistance.value.plus(off.y)
                                         draggedItem?.let { di ->
                                             val startOff = di.offset + draggedDistance.value
@@ -193,13 +193,13 @@ class MainActivity : AppCompatActivity() {
         timeOut = true
     }
 
-    private fun reorder() = tasks.forEachIndexed { index, task -> task.order = index + 1 }
-
+    private fun reorder() = tasks.forEachIndexed { i, t -> t.order = i + 1 }
 
     override fun onStop() {
-        Log.i(TAG, "on stop tasks=>${tasks.map { it }}")
+        paused = true
         reorder()
         box.put(tasks)
+        Log.i(TAG, "on stop tasks=>${tasks.map { it }}")
         super.onStop()
     }
 
@@ -215,9 +215,10 @@ class MainActivity : AppCompatActivity() {
     ) {
         task.elapsedTimeState = mutableStateOf(secondsToTime(task.elapsedTime))
         task.titleState = mutableStateOf(task.title)
-        if (task.isRunning && (task.isRunningState == null || !task.isRunningState!!.value)) {
+        if (task.isRunning && !task.isRunningState.value) {
+            task.elapsedTime = (System.currentTimeMillis() - task.startTime) / 1000
             start(task)
-            if (task.isRunningState == null) task.isRunningState = mutableStateOf(true)
+            task.isRunningState.value = true
         }
         var isDeleted by remember { mutableStateOf(false) }
 
@@ -282,7 +283,7 @@ class MainActivity : AppCompatActivity() {
                         }
                         Image(
                             painterResource(
-                                id = if (task.isRunningState?.value == true) R.drawable.ic_pause_circle_outline_24
+                                id = if (task.isRunningState.value) R.drawable.ic_pause_circle_outline_24
                                 else R.drawable.ic_play_circle_outline_24
                             ),
                             contentDescription = getString(R.string.start_task),
@@ -297,9 +298,9 @@ class MainActivity : AppCompatActivity() {
                                     indication = null
                                 ) {
                                     if (task.titleState.value.isEmpty()) task.titleState.value = task.title
-                                    val value = task.isRunning
-                                    task.isRunning = !value
-                                    task.isRunningState?.value = !value
+                                    val running = task.isRunning
+                                    task.isRunning = !running
+                                    task.isRunningState.value = !running
                                     if (task.isRunning) {
                                         task.startTime = System.currentTimeMillis()
                                         start(task)
@@ -329,13 +330,30 @@ class MainActivity : AppCompatActivity() {
         else v?.vibrate(50)
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (paused) tasks.forEach {
+            if (it.isRunning) {
+                it.elapsedTime = (System.currentTimeMillis() - it.startTime) / 1000
+                Log.i(TAG, "found running item in on resume elapsed time=>${it.elapsedTime}")
+                start(it)
+            }
+        }
+        paused = false
+        Log.i(TAG, "on resume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        paused = true
+        Log.i(TAG, "on pause")
+    }
+
     private fun start(task: Task): Job = cScope.launch {
         task.elapsedTime++
-        withContext(Dispatchers.Main) {
-            task.elapsedTimeState.value = secondsToTime(task.elapsedTime)
-        }
+        withContext(Dispatchers.Main) { task.elapsedTimeState.value = secondsToTime(task.elapsedTime) }
         delay(1000)
-        if (task.isRunning) {
+        if (task.isRunning && !paused) {
             start(task)
         }
     }

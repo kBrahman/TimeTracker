@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'io.objectbox'
 
 def localProperties = new Properties()
 localProperties.load(rootProject.file('local.properties').newDataInputStream())
@@ -17,13 +18,13 @@ android {
         }
     }
 
-    compileSdkVersion 32
+    compileSdkVersion 31
     defaultConfig {
         applicationId localProperties["id"]
         minSdkVersion 21
-        targetSdkVersion 32
-        versionCode 22
-        versionName "3.8"
+        targetSdkVersion 31
+        versionCode 23
+        versionName "3.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -43,7 +44,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    composeOptions { kotlinCompilerExtensionVersion "1.2.0-alpha06" }
+    composeOptions { kotlinCompilerExtensionVersion "1.2.0-alpha08" }
     kotlinOptions {
         jvmTarget = '11'
         useIR = true
@@ -63,11 +64,9 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
     //compose
     implementation 'androidx.activity:activity-compose:1.4.0'
-    implementation 'androidx.compose.foundation:foundation:1.2.0-alpha06'
-    implementation 'androidx.compose.material:material:1.2.0-alpha06'
+    implementation 'androidx.compose.foundation:foundation:1.2.0-alpha08'
+    implementation 'androidx.compose.material:material:1.2.0-alpha08'
     implementation 'androidx.constraintlayout:constraintlayout-compose:1.0.0'
-    implementation 'androidx.compose.runtime:runtime-livedata:1.2.0-alpha06'
     //ads
-    implementation 'com.facebook.android:audience-network-sdk:6.8.0'
+    implementation 'com.facebook.android:audience-network-sdk:6.10.0'
 }
-apply plugin: 'io.objectbox'

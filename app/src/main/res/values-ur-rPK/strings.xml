@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="enter_task_name">کام کا نام درج کریں۔</string>
+    <string name="task_name">کام کا نام</string>
+    <string name="total">کل:</string>
+    <string name="new_task">نیا کام</string>
+    <string name="start_task">کام شروع کریں۔</string>
+    <string name="current_name">موجودہ نام</string>
+</resources>

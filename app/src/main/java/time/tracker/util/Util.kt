@@ -2,7 +2,7 @@ package time.tracker.util
 
 import androidx.compose.foundation.lazy.LazyListItemInfo
 
-fun secondsToTime(seconds: Int): String {
+fun secondsToTime(seconds: Long): String {
     val h = seconds / 3600
     val m = seconds % 3600 / 60
     val s = seconds % 60
