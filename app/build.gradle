@@ -23,8 +23,8 @@ android {
         applicationId localProperties["id"]
         minSdkVersion 21
         targetSdkVersion 32
-        versionCode 23
-        versionName "3.9"
+        versionCode 24
+        versionName "3.10"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
