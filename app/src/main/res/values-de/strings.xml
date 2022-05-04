@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="enter_task_name">Aufgabennamen eingeben</string>
+    <string name="task_name">Aufgabennname</string>
+    <string name="total">Gesamt:</string>
+    <string name="new_task">Neue Aufgabe</string>
+    <string name="start_task">Aufgabe starten</string>
+    <string name="current_name">Aktueller Name</string>
+</resources>

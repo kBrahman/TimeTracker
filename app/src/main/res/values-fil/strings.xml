@@ -3,4 +3,7 @@
     <string name="total">Kabuuang:</string>
     <string name="enter_task_name">"Ipasok ang pangalan ng gawain "</string>
     <string name="task_name">"Pangalan ng gawain "</string>
+    <string name="new_task">Bagong gawain</string>
+    <string name="start_task">Simulan ang gawain</string>
+    <string name="current_name">Kasalukuyang pangalan</string>
 </resources>
