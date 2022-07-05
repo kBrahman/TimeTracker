@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TimeTracker</string>
+    <string name="enter_task_name">Introduce el nombre de la tarea</string>
+    <string name="task_name">Nombre de la tarea</string>
+    <string name="new_task">Nueva tarea</string>
+    <string name="start_task">Iniciar tarea</string>
+    <string name="current_name">Nombre actual</string>
+</resources>
