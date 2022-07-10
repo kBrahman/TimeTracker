@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="enter_task_name">"कार्य का नाम दर्ज करें "</string>
+    <string name="task_name">कार्य का नाम</string>
+    <string name="total">कुल:</string>
+    <string name="new_task">नया कार्य</string>
+    <string name="start_task">कार्य प्रारंभ करें</string>
+    <string name="current_name">वर्तमान नाम</string>
+</resources>

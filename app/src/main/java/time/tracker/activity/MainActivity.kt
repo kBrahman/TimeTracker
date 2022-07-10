@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension.Companion.fillToConstraints
+import androidx.constraintlayout.compose.Dimension.Companion.matchParent
 import com.facebook.ads.Ad
 import com.facebook.ads.AdError
 import com.facebook.ads.InterstitialAd
@@ -251,7 +252,7 @@ class MainActivity : AppCompatActivity() {
                                     bottom.linkTo(parent.bottom)
                                     start.linkTo(parent.start)
                                     end.linkTo(time.start)
-                                    width = fillToConstraints
+                                    width = matchParent
                                 },
                             label = {
                                 Text(
